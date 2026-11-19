@@ -1,0 +1,2336 @@
+openapi: 3.0.3
+info:
+  title: API de consulta SGR - Municipalidad de La Serena
+  version: 1.0.0
+  description: |-
+    API REST de **solo lectura** del Sistema de Gestión de Resultados (SGR).
+
+    1. Obtén un token en `POST /api/v1/token/` con tu usuario y contraseña del SGR (y `codigo_2fa` si tu cuenta tiene verificación en dos pasos).
+    2. Presiona **Authorize** e ingresa el token.
+
+    Cada usuario ve solo lo que su rol permite en el SGR. Los listados vienen paginados (50 por página; `?page=` y `?page_size=` hasta 500).
+paths:
+  /api/v1/ajustes-incentivo/:
+    get:
+      operationId: ajustes_incentivo_list
+      description: Incentivos y penalizaciones. Administrador y Coordinador ven todos;
+        el Funcionario, los suyos.
+      parameters:
+      - in: query
+        name: estado
+        schema:
+          type: string
+        description: Filtra por estado (valor exacto).
+      - in: query
+        name: funcionario
+        schema:
+          type: integer
+        description: Filtra por id de funcionario.
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      - in: query
+        name: periodo
+        schema:
+          type: integer
+        description: Filtra por id de periodo.
+      tags:
+      - Incentivos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAjusteIncentivoList'
+          description: ''
+  /api/v1/ajustes-incentivo/{id}/:
+    get:
+      operationId: ajustes_incentivo_retrieve
+      description: Incentivos y penalizaciones. Administrador y Coordinador ven todos;
+        el Funcionario, los suyos.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este ajuste incentivo
+          sgr.
+        required: true
+      tags:
+      - Incentivos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AjusteIncentivo'
+          description: ''
+  /api/v1/areas/:
+    get:
+      operationId: areas_list
+      description: Áreas funcionales.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAreaList'
+          description: ''
+  /api/v1/areas/{id}/:
+    get:
+      operationId: areas_retrieve
+      description: Áreas funcionales.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este area sgr.
+        required: true
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Area'
+          description: ''
+  /api/v1/cargos/:
+    get:
+      operationId: cargos_list
+      description: Cargos de los funcionarios.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCargoList'
+          description: ''
+  /api/v1/cargos/{id}/:
+    get:
+      operationId: cargos_retrieve
+      description: Cargos de los funcionarios.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este cargo sgr.
+        required: true
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cargo'
+          description: ''
+  /api/v1/cartas/:
+    get:
+      operationId: cartas_list
+      description: 'Cartas de la matriz Excel. No tienen delegación: solo las ven
+        perfiles sin límite territorial.'
+      parameters:
+      - in: query
+        name: estado
+        schema:
+          type: string
+        description: Filtra por estado (valor exacto).
+      - in: query
+        name: hoja
+        schema:
+          type: string
+        description: Filtra por hoja (valor exacto).
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: 'Búsqueda de texto en: remite, para, tema, observación.'
+      tags:
+      - Datos Excel
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCartaList'
+          description: ''
+  /api/v1/cartas/{id}/:
+    get:
+      operationId: cartas_retrieve
+      description: 'Cartas de la matriz Excel. No tienen delegación: solo las ven
+        perfiles sin límite territorial.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este carta sgr.
+        required: true
+      tags:
+      - Datos Excel
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Carta'
+          description: ''
+  /api/v1/catalogos/:
+    get:
+      operationId: catalogos_list
+      description: Catálogo de servicios.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCatalogoList'
+          description: ''
+  /api/v1/catalogos/{id}/:
+    get:
+      operationId: catalogos_retrieve
+      description: Catálogo de servicios.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este catalogo sgr.
+        required: true
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalogo'
+          description: ''
+  /api/v1/compromisos/:
+    get:
+      operationId: compromisos_list
+      description: Compromisos vigentes del Tubo de Trabajo (los anulados no se muestran).
+      parameters:
+      - in: query
+        name: delegacion
+        schema:
+          type: integer
+        description: Filtra por id de delegacion.
+      - in: query
+        name: estado
+        schema:
+          type: string
+        description: Filtra por estado (valor exacto).
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      - in: query
+        name: responsable
+        schema:
+          type: integer
+        description: Filtra por id de responsable.
+      - in: query
+        name: territorio
+        schema:
+          type: string
+        description: Filtra por territorio (valor exacto).
+      tags:
+      - Tubo de trabajo
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCompromisoList'
+          description: ''
+  /api/v1/compromisos/{id}/:
+    get:
+      operationId: compromisos_retrieve
+      description: Compromisos vigentes del Tubo de Trabajo (los anulados no se muestran).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este compromiso sgr.
+        required: true
+      tags:
+      - Tubo de trabajo
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Compromiso'
+          description: ''
+  /api/v1/conceptos-ajuste/:
+    get:
+      operationId: conceptos_ajuste_list
+      description: Conceptos de ajuste de incentivo (positivo / negativo).
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedConceptoAjusteList'
+          description: ''
+  /api/v1/conceptos-ajuste/{id}/:
+    get:
+      operationId: conceptos_ajuste_retrieve
+      description: Conceptos de ajuste de incentivo (positivo / negativo).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este concepto ajuste
+          sgr.
+        required: true
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConceptoAjuste'
+          description: ''
+  /api/v1/delegaciones/:
+    get:
+      operationId: delegaciones_list
+      description: Delegaciones municipales.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDelegacionList'
+          description: ''
+  /api/v1/delegaciones/{id}/:
+    get:
+      operationId: delegaciones_retrieve
+      description: Delegaciones municipales.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este delegacion sgr.
+        required: true
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Delegacion'
+          description: ''
+  /api/v1/items-medicion/:
+    get:
+      operationId: items_medicion_list
+      description: 'Ítems de medición: meta y ponderador de cada cargo por período.'
+      parameters:
+      - in: query
+        name: cargo
+        schema:
+          type: integer
+        description: Filtra por id de cargo.
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      - in: query
+        name: periodo
+        schema:
+          type: integer
+        description: Filtra por id de periodo.
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedItemList'
+          description: ''
+  /api/v1/items-medicion/{id}/:
+    get:
+      operationId: items_medicion_retrieve
+      description: 'Ítems de medición: meta y ponderador de cada cargo por período.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este item sgr.
+        required: true
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+          description: ''
+  /api/v1/organizaciones/:
+    get:
+      operationId: organizaciones_list
+      description: Organizaciones comunitarias (Excel JJVV).
+      parameters:
+      - in: query
+        name: delegacion
+        schema:
+          type: integer
+        description: Filtra por id de delegacion.
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: 'Búsqueda de texto en: nombre, domicilio.'
+      - in: query
+        name: territorio
+        schema:
+          type: string
+        description: Filtra por territorio (valor exacto).
+      tags:
+      - Datos Excel
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOrganizacionList'
+          description: ''
+  /api/v1/organizaciones/{id}/:
+    get:
+      operationId: organizaciones_retrieve
+      description: Organizaciones comunitarias (Excel JJVV).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este organizacion sgr.
+        required: true
+      tags:
+      - Datos Excel
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organizacion'
+          description: ''
+  /api/v1/periodos/:
+    get:
+      operationId: periodos_list
+      description: Períodos de medición (trimestres).
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPeriodoList'
+          description: ''
+  /api/v1/periodos/{id}/:
+    get:
+      operationId: periodos_retrieve
+      description: Períodos de medición (trimestres).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este periodo sgr.
+        required: true
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Periodo'
+          description: ''
+  /api/v1/roles/:
+    get:
+      operationId: roles_list
+      description: Roles adicionales y sus permisos. Solo Administrador y Coordinador.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRolList'
+          description: ''
+  /api/v1/roles/{id}/:
+    get:
+      operationId: roles_retrieve
+      description: Roles adicionales y sus permisos. Solo Administrador y Coordinador.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este rol sgr.
+        required: true
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rol'
+          description: ''
+  /api/v1/solicitantes/:
+    get:
+      operationId: solicitantes_list
+      description: Solicitantes activos (sin RUN, teléfono ni correo). No disponible
+        para el Usuario de consulta.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: 'Búsqueda de texto en: nombre, apellido, dirección.'
+      - in: query
+        name: tipo_solicitante
+        schema:
+          type: string
+        description: Filtra por tipo_solicitante (valor exacto).
+      tags:
+      - Personas
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSolicitanteList'
+          description: ''
+  /api/v1/solicitantes/{id}/:
+    get:
+      operationId: solicitantes_retrieve
+      description: Solicitantes activos (sin RUN, teléfono ni correo). No disponible
+        para el Usuario de consulta.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este solicitante sgr.
+        required: true
+      tags:
+      - Personas
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Solicitante'
+          description: ''
+  /api/v1/subatenciones-sociales/:
+    get:
+      operationId: subatenciones_sociales_list
+      description: Subatenciones de cada tipo de atención social.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      - in: query
+        name: tipo_atencion
+        schema:
+          type: integer
+        description: Filtra por id de tipo_atencion.
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSubatencionSocialList'
+          description: ''
+  /api/v1/subatenciones-sociales/{id}/:
+    get:
+      operationId: subatenciones_sociales_retrieve
+      description: Subatenciones de cada tipo de atención social.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este subatencion social
+          sgr.
+        required: true
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubatencionSocial'
+          description: ''
+  /api/v1/tipos-actividad/:
+    get:
+      operationId: tipos_actividad_list
+      description: Tipos de actividad por área.
+      parameters:
+      - in: query
+        name: area
+        schema:
+          type: integer
+        description: Filtra por id de area.
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTipoActividadList'
+          description: ''
+  /api/v1/tipos-actividad/{id}/:
+    get:
+      operationId: tipos_actividad_retrieve
+      description: Tipos de actividad por área.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este tipo actividad
+          sgr.
+        required: true
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TipoActividad'
+          description: ''
+  /api/v1/tipos-atencion-social/:
+    get:
+      operationId: tipos_atencion_social_list
+      description: Tipos de atención social.
+      parameters:
+      - in: query
+        name: area
+        schema:
+          type: integer
+        description: Filtra por id de area.
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTipoAtencionSocialList'
+          description: ''
+  /api/v1/tipos-atencion-social/{id}/:
+    get:
+      operationId: tipos_atencion_social_retrieve
+      description: Tipos de atención social.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este tipo atencion social
+          sgr.
+        required: true
+      tags:
+      - Catálogos
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TipoAtencionSocial'
+          description: ''
+  /api/v1/token/:
+    post:
+      operationId: token_create
+      description: Intercambia usuario y contraseña del SGR por un token. Si la cuenta
+        tiene verificación en dos pasos, envía también `codigo_2fa`. Tras varios intentos
+        fallidos el usuario queda bloqueado unos minutos (respuesta 429).
+      summary: Obtener token
+      tags:
+      - Autenticación
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SolicitudTokenRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SolicitudTokenRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SolicitudTokenRequest'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RespuestaToken'
+          description: ''
+        '401':
+          description: Credenciales o código 2FA incorrectos (o falta el código).
+        '403':
+          description: La cuenta debe cambiar su contraseña en el SGR.
+        '429':
+          description: Usuario bloqueado temporalmente por intentos fallidos.
+  /api/v1/token/revocar/:
+    post:
+      operationId: token_revocar_create
+      summary: Cerrar sesión (revocar el token actual)
+      tags:
+      - Autenticación
+      security:
+      - TokenSGR: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/tubo-excel/:
+    get:
+      operationId: tubo_excel_list
+      description: Registros del tubo de trabajo tal como vienen en la matriz Excel.
+      parameters:
+      - in: query
+        name: estatus
+        schema:
+          type: string
+        description: Filtra por estatus (valor exacto).
+      - in: query
+        name: hoja
+        schema:
+          type: string
+        description: Filtra por hoja (valor exacto).
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: 'Búsqueda de texto en: actividad, solicitante, avance, área de
+          apoyo.'
+      - in: query
+        name: responsable
+        schema:
+          type: string
+        description: Filtra por responsable (valor exacto).
+      - in: query
+        name: territorio
+        schema:
+          type: string
+        description: Filtra por territorio (valor exacto).
+      tags:
+      - Datos Excel
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRegistroTuboList'
+          description: ''
+  /api/v1/tubo-excel/{id}/:
+    get:
+      operationId: tubo_excel_retrieve
+      description: Registros del tubo de trabajo tal como vienen en la matriz Excel.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este registro tubo sgr.
+        required: true
+      tags:
+      - Datos Excel
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistroTubo'
+          description: ''
+  /api/v1/usuarios/:
+    get:
+      operationId: usuarios_list
+      description: Funcionarios (sin datos de contacto). El Funcionario ve solo su
+        ficha; el Delegado, su delegación.
+      parameters:
+      - in: query
+        name: delegacion
+        schema:
+          type: integer
+        description: Filtra por id de delegacion.
+      - name: page
+        required: false
+        in: query
+        description: Un número de página dentro del conjunto de resultados paginado.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Número de resultados a devolver por página.
+        schema:
+          type: integer
+      - in: query
+        name: rol
+        schema:
+          type: string
+        description: Filtra por rol (valor exacto).
+      tags:
+      - Personas
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUsuarioList'
+          description: ''
+  /api/v1/usuarios/{id}/:
+    get:
+      operationId: usuarios_retrieve
+      description: Funcionarios (sin datos de contacto). El Funcionario ve solo su
+        ficha; el Delegado, su delegación.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: Un valor de entero único que identifique este usuario sgr.
+        required: true
+      tags:
+      - Personas
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+          description: ''
+  /api/v1/yo/:
+    get:
+      operationId: yo_retrieve
+      summary: Mi perfil y alcance
+      tags:
+      - Autenticación
+      security:
+      - TokenSGR: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Perfil'
+          description: ''
+components:
+  schemas:
+    AjusteIncentivo:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        concepto:
+          type: integer
+          nullable: true
+        concepto_nombre:
+          type: string
+          readOnly: true
+        tipo:
+          type: string
+          maxLength: 100
+        motivo:
+          type: string
+        valor_porcentaje:
+          type: number
+          format: double
+        efecto_porcentaje:
+          type: number
+          format: double
+          readOnly: true
+        funcionario:
+          type: integer
+        funcionario_nombre:
+          type: string
+          readOnly: true
+        periodo:
+          type: integer
+          nullable: true
+        periodo_nombre:
+          type: string
+          readOnly: true
+        estado:
+          type: string
+          maxLength: 20
+        fecha_registro:
+          type: string
+          format: date-time
+        registrado_por:
+          type: integer
+          nullable: true
+        aprobado_por:
+          type: integer
+          nullable: true
+        fecha_aprobacion:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - concepto_nombre
+      - efecto_porcentaje
+      - estado
+      - fecha_registro
+      - funcionario
+      - funcionario_nombre
+      - id
+      - motivo
+      - periodo_nombre
+      - tipo
+      - valor_porcentaje
+    Area:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nombre:
+          type: string
+          maxLength: 100
+        descripcion:
+          type: string
+          nullable: true
+        estado:
+          type: boolean
+      required:
+      - estado
+      - id
+      - nombre
+    Cargo:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        codigo:
+          type: string
+          maxLength: 12
+        nombre:
+          type: string
+          maxLength: 100
+        descripcion:
+          type: string
+          nullable: true
+        activo:
+          type: boolean
+        area:
+          type: integer
+          nullable: true
+        area_nombre:
+          type: string
+          readOnly: true
+      required:
+      - activo
+      - area_nombre
+      - codigo
+      - id
+      - nombre
+    Carta:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        hoja:
+          type: string
+          maxLength: 50
+        fila_origen:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        fecha:
+          type: string
+          format: date
+          nullable: true
+        numero:
+          type: string
+          maxLength: 30
+        para:
+          type: string
+          maxLength: 150
+        remite:
+          type: string
+          maxLength: 255
+        fono_contacto:
+          type: string
+          maxLength: 50
+        actividad_tema:
+          type: string
+        fecha_actividad:
+          type: string
+          format: date
+          nullable: true
+        encargado_seguimiento:
+          type: string
+          maxLength: 150
+        estado:
+          type: string
+          maxLength: 50
+        pronunciamiento:
+          type: string
+          maxLength: 50
+        derivada_a:
+          type: string
+          maxLength: 150
+        observacion:
+          type: string
+        observacion_importacion:
+          type: string
+      required:
+      - actividad_tema
+      - derivada_a
+      - encargado_seguimiento
+      - estado
+      - fila_origen
+      - fono_contacto
+      - hoja
+      - id
+      - numero
+      - observacion
+      - observacion_importacion
+      - para
+      - pronunciamiento
+      - remite
+    Catalogo:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        codigo:
+          type: string
+          maxLength: 30
+        nombre:
+          type: string
+          maxLength: 150
+        area:
+          type: string
+          nullable: true
+          maxLength: 100
+        activo:
+          type: boolean
+      required:
+      - activo
+      - codigo
+      - id
+      - nombre
+    Compromiso:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        origen:
+          type: string
+          maxLength: 100
+        solicitante:
+          type: string
+          maxLength: 150
+        territorio:
+          type: string
+          maxLength: 150
+        delegacion:
+          type: integer
+        delegacion_nombre:
+          type: string
+          readOnly: true
+        responsable:
+          type: integer
+        responsable_nombre:
+          type: string
+          readOnly: true
+        fecha_registro:
+          type: string
+          format: date-time
+        fecha_compromiso:
+          type: string
+          format: date
+        area_apoyo:
+          type: string
+          maxLength: 150
+        descripcion:
+          type: string
+        estado:
+          type: string
+          maxLength: 30
+        observacion:
+          type: string
+          nullable: true
+        fecha_realizacion:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - area_apoyo
+      - delegacion
+      - delegacion_nombre
+      - descripcion
+      - estado
+      - fecha_compromiso
+      - fecha_registro
+      - id
+      - origen
+      - responsable
+      - responsable_nombre
+      - solicitante
+      - territorio
+    ConceptoAjuste:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nombre:
+          type: string
+          maxLength: 100
+        naturaleza:
+          type: string
+          maxLength: 10
+        activo:
+          type: boolean
+      required:
+      - activo
+      - id
+      - naturaleza
+      - nombre
+    Delegacion:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nombre:
+          type: string
+          maxLength: 100
+        codigo:
+          type: string
+          maxLength: 10
+        direccion:
+          type: string
+          nullable: true
+          maxLength: 255
+        telefono:
+          type: string
+          nullable: true
+          maxLength: 50
+        email:
+          type: string
+          nullable: true
+          maxLength: 254
+        activo:
+          type: boolean
+        ambito:
+          type: string
+          maxLength: 100
+      required:
+      - activo
+      - ambito
+      - codigo
+      - id
+      - nombre
+    Item:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        cargo:
+          type: integer
+        cargo_nombre:
+          type: string
+          readOnly: true
+        periodo:
+          type: integer
+        periodo_nombre:
+          type: string
+          readOnly: true
+        nombre_item:
+          type: string
+          maxLength: 150
+        descripcion:
+          type: string
+          nullable: true
+        tipo_unidad:
+          type: string
+          maxLength: 20
+        meta_cuantitativa:
+          type: number
+          format: double
+        ponderador:
+          type: number
+          format: double
+        unidad_medida:
+          type: string
+          maxLength: 50
+        activo:
+          type: boolean
+      required:
+      - activo
+      - cargo
+      - cargo_nombre
+      - id
+      - meta_cuantitativa
+      - nombre_item
+      - periodo
+      - periodo_nombre
+      - ponderador
+      - tipo_unidad
+      - unidad_medida
+    Organizacion:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nombre:
+          type: string
+          maxLength: 255
+        domicilio_legal:
+          type: string
+          maxLength: 255
+        territorio:
+          type: string
+          maxLength: 50
+        delegacion:
+          type: integer
+          nullable: true
+        delegacion_nombre:
+          type: string
+          readOnly: true
+        socios_activos:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        fecha_constitucion:
+          type: string
+          format: date
+          nullable: true
+        numero_registro_pj:
+          type: string
+          maxLength: 30
+        fecha_inscripcion_registro:
+          type: string
+          format: date
+          nullable: true
+        registro_dir:
+          type: string
+          maxLength: 30
+        fila_origen:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        observacion_importacion:
+          type: string
+      required:
+      - delegacion_nombre
+      - domicilio_legal
+      - fila_origen
+      - id
+      - nombre
+      - numero_registro_pj
+      - observacion_importacion
+      - registro_dir
+      - territorio
+    PaginatedAjusteIncentivoList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AjusteIncentivo'
+    PaginatedAreaList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Area'
+    PaginatedCargoList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Cargo'
+    PaginatedCartaList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Carta'
+    PaginatedCatalogoList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Catalogo'
+    PaginatedCompromisoList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Compromiso'
+    PaginatedConceptoAjusteList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConceptoAjuste'
+    PaginatedDelegacionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Delegacion'
+    PaginatedItemList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Item'
+    PaginatedOrganizacionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Organizacion'
+    PaginatedPeriodoList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Periodo'
+    PaginatedRegistroTuboList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/RegistroTubo'
+    PaginatedRolList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rol'
+    PaginatedSolicitanteList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Solicitante'
+    PaginatedSubatencionSocialList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubatencionSocial'
+    PaginatedTipoActividadList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TipoActividad'
+    PaginatedTipoAtencionSocialList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TipoAtencionSocial'
+    PaginatedUsuarioList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Usuario'
+    Perfil:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        nombre:
+          type: string
+        rol:
+          type: string
+        delegacion:
+          type: integer
+          nullable: true
+        es_admin:
+          type: boolean
+          readOnly: true
+        es_coordinador:
+          type: boolean
+        limitado_a_delegacion:
+          type: boolean
+      required:
+      - delegacion
+      - es_admin
+      - es_coordinador
+      - id
+      - limitado_a_delegacion
+      - nombre
+      - rol
+      - username
+    Periodo:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nombre:
+          type: string
+          maxLength: 100
+        anio:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        trimestre:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        fecha_inicio:
+          type: string
+          format: date
+        fecha_termino:
+          type: string
+          format: date
+        dias_computables:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        cerrado:
+          type: boolean
+        estado:
+          type: boolean
+        umbral_semaforo_verde:
+          type: number
+          format: double
+        umbral_semaforo_ambar:
+          type: number
+          format: double
+        umbral_colectivo:
+          type: number
+          format: double
+        tope_cumplimiento:
+          type: number
+          format: double
+      required:
+      - cerrado
+      - dias_computables
+      - estado
+      - fecha_inicio
+      - fecha_termino
+      - id
+      - nombre
+      - tope_cumplimiento
+      - umbral_colectivo
+      - umbral_semaforo_ambar
+      - umbral_semaforo_verde
+    RegistroTubo:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        hoja:
+          type: string
+          maxLength: 50
+        fila_origen:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        numero:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        fecha_solicitud:
+          type: string
+          format: date
+          nullable: true
+        actividad:
+          type: string
+        interno_externo:
+          type: string
+          maxLength: 30
+        solicitante:
+          type: string
+          maxLength: 255
+        territorio:
+          type: string
+          maxLength: 100
+        delegacion:
+          type: integer
+          nullable: true
+        delegacion_nombre:
+          type: string
+          readOnly: true
+        responsable:
+          type: string
+          maxLength: 150
+        fecha_compromiso:
+          type: string
+          format: date
+          nullable: true
+        area_apoyo:
+          type: string
+          maxLength: 255
+        avance_observaciones:
+          type: string
+        estatus:
+          type: string
+          maxLength: 50
+        codigo_verificacion_foto:
+          type: string
+          maxLength: 100
+        observacion_importacion:
+          type: string
+      required:
+      - actividad
+      - area_apoyo
+      - avance_observaciones
+      - codigo_verificacion_foto
+      - delegacion_nombre
+      - estatus
+      - fila_origen
+      - hoja
+      - id
+      - interno_externo
+      - observacion_importacion
+      - responsable
+      - solicitante
+      - territorio
+    RespuestaToken:
+      type: object
+      properties:
+        token:
+          type: string
+        tipo:
+          type: string
+          default: Bearer
+        expira_en:
+          type: string
+          format: date-time
+        usuario:
+          $ref: '#/components/schemas/Perfil'
+      required:
+      - expira_en
+      - token
+      - usuario
+    Rol:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nombre_rol:
+          type: string
+          maxLength: 50
+        descripcion:
+          type: string
+          nullable: true
+        estado:
+          type: boolean
+        permisos: {}
+      required:
+      - estado
+      - id
+      - nombre_rol
+    Solicitante:
+      type: object
+      description: Sin RUN, teléfono ni correo.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nombre:
+          type: string
+          maxLength: 100
+        apellido:
+          type: string
+          maxLength: 100
+        nombre_completo:
+          type: string
+          readOnly: true
+        tipo_solicitante:
+          type: string
+          maxLength: 30
+        direccion:
+          type: string
+          nullable: true
+          maxLength: 255
+        estado:
+          type: boolean
+      required:
+      - apellido
+      - estado
+      - id
+      - nombre
+      - nombre_completo
+      - tipo_solicitante
+    SolicitudTokenRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+          maxLength: 150
+        password:
+          type: string
+          minLength: 1
+          maxLength: 128
+        codigo_2fa:
+          type: string
+          description: Solo si la cuenta tiene verificación en dos pasos.
+          maxLength: 6
+      required:
+      - password
+      - username
+    SubatencionSocial:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        tipo_atencion:
+          type: integer
+        tipo_atencion_nombre:
+          type: string
+          readOnly: true
+        nombre:
+          type: string
+          maxLength: 100
+        descripcion:
+          type: string
+        activo:
+          type: boolean
+      required:
+      - activo
+      - descripcion
+      - id
+      - nombre
+      - tipo_atencion
+      - tipo_atencion_nombre
+    TipoActividad:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        area:
+          type: integer
+        area_nombre:
+          type: string
+          readOnly: true
+        nombre:
+          type: string
+          maxLength: 100
+        descripcion:
+          type: string
+        activo:
+          type: boolean
+      required:
+      - activo
+      - area
+      - area_nombre
+      - descripcion
+      - id
+      - nombre
+    TipoAtencionSocial:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        area:
+          type: integer
+        area_nombre:
+          type: string
+          readOnly: true
+        nombre:
+          type: string
+          maxLength: 100
+        descripcion:
+          type: string
+        activo:
+          type: boolean
+      required:
+      - activo
+      - area
+      - area_nombre
+      - descripcion
+      - id
+      - nombre
+    Usuario:
+      type: object
+      description: Sin contraseña, secreto 2FA, RUN, teléfono ni correo.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          maxLength: 150
+        nombre:
+          type: string
+          readOnly: true
+        rol:
+          type: string
+          maxLength: 20
+        is_active:
+          type: boolean
+        cargo:
+          type: integer
+          nullable: true
+        cargo_nombre:
+          type: string
+          readOnly: true
+        delegacion:
+          type: integer
+          nullable: true
+        delegacion_nombre:
+          type: string
+          readOnly: true
+        area_entidad:
+          type: integer
+          nullable: true
+        area_nombre:
+          type: string
+          readOnly: true
+      required:
+      - area_nombre
+      - cargo_nombre
+      - delegacion_nombre
+      - id
+      - is_active
+      - nombre
+      - rol
+      - username
+  securitySchemes:
+    TokenSGR:
+      type: http
+      scheme: bearer
+      description: Token obtenido en POST /api/v1/token/. Vence según API_TOKEN_HORAS.

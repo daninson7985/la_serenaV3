@@ -1,0 +1,21 @@
+# Datos personales y secretos: nunca subir
+.env
+.env.*
+!.env.example
+*.sqlite3
+*.sqlite3-journal
+*.xlsx
+*.xls
+*.csv
+*.zip
+*.gz
+sgr-data*.json
+datos.json
+media/
+staticfiles/
+*.log
+# Entornos y caches
+.venv/
+venv/
+__pycache__/
+node_modules/

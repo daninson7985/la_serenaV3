@@ -1,0 +1,170 @@
+<div class="card bg-white border p-3 shadow-sm mb-2 {% if item.estado_tablero == 'VENCIDO' %}border-danger border-2{% endif %}">
+  <div class="d-flex justify-content-between align-items-start mb-1">
+    <span class="badge bg-secondary-subtle text-dark font-monospace" style="font-size: 0.68rem;">#{{ item.id }}</span>
+    <div class="d-flex gap-1">
+      {% if item.puede_gestionar %}
+      <a href="{% url 'web_editar_compromiso' item.id %}" class="btn btn-sm btn-outline-secondary p-0 px-1 border-0" title="Editar compromiso">
+        <i class="bi bi-pencil-square text-dark" style="font-size: 0.85rem;"></i>
+      </a>
+      {% endif %}
+      {% if item.puede_anular %}
+      <button type="button" class="btn btn-sm btn-outline-danger py-0 px-1" style="font-size: 0.72rem;" data-bs-toggle="modal" data-bs-target="#modalAnularCompromiso{{ item.id }}" title="Anular compromiso">
+        Anular
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <span class="badge mb-2 align-self-start {% if item.estado_tablero == 'COMPLETADO' or item.estado_tablero == 'REALIZADO' %}bg-success{% elif item.estado_tablero == 'VENCIDO' %}bg-danger{% elif item.estado_tablero == 'REPROGRAMADO' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+    {% if item.estado_tablero == 'COMPLETADO' or item.estado_tablero == 'REALIZADO' %}Completado{% elif item.estado_tablero == 'VENCIDO' %}Vencido{% elif item.estado_tablero == 'REPROGRAMADO' %}Reprogramado{% elif item.estado_tablero == 'EN_PROCESO' %}En proceso{% else %}{{ item.get_estado_display }}{% endif %}
+  </span>
+
+  <div class="fw-bold text-dark small mb-1">{{ item.solicitante }}</div>
+  <p class="text-secondary small mb-2" style="font-size: 0.75rem;">{{ item.descripcion }}</p>
+
+  <div class="small border-top pt-2 mt-1 text-secondary" style="font-size: 0.75rem;">
+    <div class="d-flex justify-content-between">
+      <span>Delegación:</span>
+      <strong class="text-dark">{{ item.delegacion.codigo }}</strong>
+    </div>
+    <div class="d-flex justify-content-between">
+      <span>Responsable:</span>
+      <strong class="text-dark">{{ item.responsable.get_full_name|default:item.responsable.username }}</strong>
+    </div>
+    <div class="d-flex justify-content-between">
+      <span>Límite:</span>
+      <strong class="{% if item.estado_tablero == 'VENCIDO' %}text-danger fw-bold{% else %}text-dark{% endif %}">
+        {{ item.fecha_comprometida|date:"d/m/Y" }}
+      </strong>
+    </div>
+  </div>
+
+  {% if item.puede_gestionar and item.estado_tablero != 'COMPLETADO' and item.estado_tablero != 'REALIZADO' %}
+    <form method="POST" action="{% url 'web_cambiar_estado_compromiso' item.id %}" class="mt-2 pt-2 border-top">
+      {% csrf_token %}
+      <select name="estado" class="form-select form-select-sm bg-white text-dark border fw-semibold mb-2" style="font-size: 0.75rem; background-color: #ffffff !important; color: #1e293b !important;" required>
+        <option value="" selected disabled>Actualizar etapa...</option>
+        <option value="PENDIENTE">Pendiente</option>
+        <option value="EN_PROCESO">En proceso</option>
+        <option value="REPROGRAMADO">Reprogramar</option>
+        <option value="REALIZADO">Realizado (requiere evidencia aprobada)</option>
+      </select>
+      <textarea name="observacion" class="form-control form-control-sm mb-2" rows="2" maxlength="2000" placeholder="Observación obligatoria del cambio" required></textarea>
+      <button type="submit" class="btn btn-sm btn-outline-primary w-100">Guardar cambio y auditoría</button>
+    </form>
+  {% endif %}
+</div>
+
+<!-- Modal Editar Compromiso #{{ item.id }} -->
+<div class="modal fade" id="modalEditarCompromiso{{ item.id }}" tabindex="-1" aria-labelledby="lblEditar{{ item.id }}" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable text-start">
+    <div class="modal-content bg-dark text-light border-secondary">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title fw-bold text-light" id="lblEditar{{ item.id }}">
+          <i class="bi bi-pencil-square text-warning me-2"></i>Editar Compromiso #{{ item.id }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{% url 'web_editar_compromiso' item.id %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-body small">
+          <div class="mb-3">
+            <label class="form-label text-secondary fw-bold text-uppercase">Solicitante (Vecino u Organización)</label>
+            <input type="text" name="solicitante" value="{{ item.solicitante }}" class="form-control bg-black text-light border-secondary" required>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label text-secondary fw-bold text-uppercase">Delegación</label>
+              <select name="delegacion_id" class="form-select bg-black text-light border-secondary" required>
+                {% for d in delegaciones %}
+                  <option value="{{ d.id }}" {% if item.delegacion_id == d.id %}selected{% endif %}>{{ d.nombre }} ({{ d.codigo }})</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label text-secondary fw-bold text-uppercase">Responsable Asignado</label>
+              <select name="responsable_id" class="form-select bg-black text-light border-secondary" required>
+                {% for u in usuarios_terreno %}
+                  <option value="{{ u.id }}" {% if item.responsable_id == u.id %}selected{% endif %}>
+                    {{ u.get_full_name|default:u.username }} ({{ u.delegacion.codigo|default:'Central' }})
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label text-secondary fw-bold text-uppercase">Fecha Comprometida (período activo)</label>
+              <input type="date" name="fecha_comprometida" value="{{ item.fecha_comprometida|date:'Y-m-d' }}" min="{{ fecha_min_periodo|date:'Y-m-d' }}" max="{{ fecha_max_periodo|date:'Y-m-d' }}" class="form-control bg-black text-light border-secondary" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label text-secondary fw-bold text-uppercase">Actividad asociada</label>
+              <select name="actividad_id" class="form-select bg-black text-light border-secondary">
+                <option value="">Sin cambios</option>
+                {% for actividad in actividades %}
+                  <option value="{{ actividad.id }}" {% if item.actividad_id == actividad.id %}selected{% endif %}>
+                    #{{ actividad.id }} · {{ actividad.fecha_actividad|date:'d/m/Y' }} · {{ actividad.actividad_solicitud|truncatechars:45 }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label text-secondary fw-bold text-uppercase">Área de Apoyo</label>
+            <input type="text" name="area_apoyo" value="{{ item.area_apoyo }}" class="form-control bg-black text-light border-secondary">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label text-secondary fw-bold text-uppercase">Descripción del Requerimiento</label>
+            <textarea name="descripcion" rows="3" class="form-control bg-black text-light border-secondary" required>{{ item.descripcion }}</textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label text-secondary fw-bold text-uppercase">Agregar o cambiar fotografías</label>
+            <input type="file" name="fotos" accept="image/*" multiple class="form-control bg-black text-light border-secondary">
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" name="reemplazar_fotos" id="reemplazarFotos{{ item.id }}">
+              <label class="form-check-label text-secondary" for="reemplazarFotos{{ item.id }}">Reemplazar las fotografías actuales</label>
+            </div>
+            <div class="form-text text-secondary">Las fotos se agregan a la actividad asociada y quedan pendientes de validación. Al reemplazar, las anteriores se conservan en el historial y se reinicia la revisión.</div>
+          </div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-danger btn-sm fw-bold">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% if item.puede_anular %}
+<!-- Modal Anular Compromiso #{{ item.id }} -->
+<div class="modal fade" id="modalAnularCompromiso{{ item.id }}" tabindex="-1" aria-labelledby="lblAnular{{ item.id }}" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered text-start">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'web_anular_compromiso' item.id %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="lblAnular{{ item.id }}">Anular compromiso #{{ item.id }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <label for="motivoAnularCompromiso{{ item.id }}" class="form-label">Motivo</label>
+          <textarea id="motivoAnularCompromiso{{ item.id }}" name="motivo" class="form-control" rows="3" maxlength="2000" required data-autofocus></textarea>
+          <small class="text-secondary">{{ item.solicitante }} · El compromiso se conservará en el historial, pero dejará de mostrarse y de sumar al avance.</small>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-danger">Confirmar anulación</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}

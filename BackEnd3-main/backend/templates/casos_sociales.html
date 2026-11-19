@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Casos Sociales | Matriz SGR{% endblock %}
+{% block content %}
+<div class="d-flex flex-column gap-4">
+  <div class="card sgr-page-header sgr-image-header p-4 shadow-sm border-0">
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <span class="badge text-white fw-bold px-2 py-1" style="background-color: var(--carmesi-la-serena);">DIDECO / Gestión Social</span>
+      <span class="text-white-50 small">Trazabilidad y Protección de Datos (Ley 19.628)</span>
+    </div>
+    <h3 class="fw-black mb-0 text-white">Seguimiento de Casos y Atenciones Sociales</h3>
+    <small class="text-white-50">Registro de hasta tres gestiones secuenciales para un mismo caso o persona sin duplicar el expediente principal.</small>
+  </div>
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }}" role="alert">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+  {% if not tipos_atencion %}
+    <div class="alert alert-warning" role="alert">
+      No hay tipos de atención configurados para tu área. Solicita al administrador que los cree en el mantenedor de tipos de atención social.
+    </div>
+  {% endif %}
+
+  {% if puede_crear_casos %}
+    <section class="card p-4 shadow-sm border-0">
+      <h4 class="h5 fw-bold mb-3">Abrir caso social</h4>
+      <form method="post" class="row g-3">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="crear_caso">
+        {% for field in case_form %}
+          <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+          </div>
+        {% endfor %}
+        <div class="col-12">
+          <button type="submit" class="btn btn-danger">Crear caso</button>
+        </div>
+      </form>
+    </section>
+  {% endif %}
+
+  <div class="row g-4">
+    {% for c in casos %}
+      <div class="col-12 col-lg-6">
+        <div class="card p-4 border-secondary-subtle h-100 shadow-sm bg-white">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <span class="badge bg-dark font-monospace">{{ c.codigo_caso }}</span>
+              <h5 class="fw-bold text-dark mt-1 mb-0">{{ c.persona_anonimizada }}</h5>
+              <small class="text-secondary">Delegación: {{ c.delegacion.nombre }} &bull; Apertura: {{ c.fecha_apertura|date:"d/m/Y" }}</small>
+            </div>
+            <span class="badge {% if c.cerrado %}bg-success{% else %}bg-warning text-dark{% endif %}">
+              {% if c.cerrado %}Caso Cerrado{% else %}En Atención{% endif %}
+            </span>
+          </div>
+          <div class="border-start border-secondary-subtle ps-3 ms-2">
+            <div class="small text-secondary mb-2">
+              Gestiones registradas: {{ c.atenciones.count }} de 3
+            </div>
+            {% for at in c.atenciones.all %}
+              <div class="position-relative mb-3">
+                <div class="small fw-bold text-dark">Etapa {{ at.etapa }}: {{ at.get_etapa_display }}</div>
+                <div class="small text-dark">
+                  {{ at.tipo_atencion }}{% if at.subatencion %} / {{ at.subatencion }}{% endif %} - {{ at.detalle }}
+                </div>
+                <div class="small text-secondary" style="font-size: 0.7rem;">
+                  {% if at.etapa == 1 %}
+                    Visita programada: <strong>{{ at.fecha_visita_programada|date:"d/m/Y" }}</strong>
+                  {% elif at.etapa == 2 %}
+                    Visita realizada: <strong>{{ at.fecha_visita|date:"d/m/Y" }}</strong>
+                  {% elif at.etapa == 3 %}
+                    Beneficio entregado: <strong>{{ at.fecha_entrega_beneficio|date:"d/m/Y" }}</strong>
+                  {% endif %}
+                  &bull; Resultado: <strong class="text-success">{{ at.resultado }}</strong>
+                </div>
+              </div>
+            {% empty %}
+              <div class="text-secondary small">Sin gestiones registradas aún.</div>
+            {% endfor %}
+          </div>
+          {% if not c.cerrado and c.atenciones.count < 3 %}
+            <form method="post" class="border-top mt-3 pt-3">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="registrar_atencion">
+              <input type="hidden" name="caso_id" value="{{ c.pk }}">
+              <h6 class="fw-bold">Registrar etapa {{ c.atenciones.count|add:1 }}</h6>
+              <div class="row g-2">
+                <div class="col-12 col-md-4">
+                  <label class="form-label" for="tipo-{{ c.pk }}">Tipo de atención</label>
+                  <select class="form-select tipo-atencion-select" id="tipo-{{ c.pk }}"
+                          name="tipo_atencion_catalogo_id" required {% if not tipos_atencion %}disabled{% endif %}>
+                    <option value="">Selecciona un tipo de atención...</option>
+                    {% for tipo in tipos_atencion %}
+                      <option value="{{ tipo.pk }}">{{ tipo.nombre }} ({{ tipo.area.nombre }})</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-12 col-md-4">
+                  <label class="form-label" for="subatencion-{{ c.pk }}">Subatención</label>
+                  <select class="form-select subatencion-select" id="subatencion-{{ c.pk }}"
+                          name="subatencion_catalogo_id" disabled>
+                    <option value="">Selecciona un tipo de atención primero...</option>
+                    {% for subatencion in subatenciones %}
+                      <option value="{{ subatencion.pk }}" data-tipo-atencion="{{ subatencion.tipo_atencion_id }}">
+                        {{ subatencion.nombre }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-12 col-md-8">
+                  <label class="form-label" for="detalle-{{ c.pk }}">Detalle</label>
+                  <textarea class="form-control" id="detalle-{{ c.pk }}" name="detalle" rows="2" required></textarea>
+                </div>
+                <div class="col-12 col-md-3">
+                  <label class="form-label" for="resultado-{{ c.pk }}">Resultado</label>
+                  <input class="form-control" id="resultado-{{ c.pk }}" name="resultado" maxlength="150" required>
+                </div>
+                <div class="col-12 col-md-4">
+                  <label class="form-label" for="fecha-gestion-{{ c.pk }}">
+                    {% if c.atenciones.count == 0 %}Fecha programada de visita
+                    {% elif c.atenciones.count == 1 %}Fecha de visita realizada
+                    {% else %}Fecha de entrega del beneficio{% endif %}
+                  </label>
+                  <input class="form-control" type="date" id="fecha-gestion-{{ c.pk }}"
+                         name="fecha_gestion" {% if c.atenciones.count == 0 %}min="{{ hoy|date:'Y-m-d' }}"{% else %}max="{{ hoy|date:'Y-m-d' }}"{% endif %} required>
+                </div>
+                <div class="col-12">
+                  <button type="submit" class="btn btn-outline-danger btn-sm" {% if not tipos_atencion %}disabled{% endif %}>Guardar gestión</button>
+                </div>
+              </div>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12 text-center text-secondary py-5">No hay casos sociales registrados.</div>
+    {% endfor %}
+  </div>
+</div>
+<script>
+  document.querySelectorAll('.tipo-atencion-select').forEach(tipoSelect => {
+    const form = tipoSelect.closest('form');
+    const subatencionSelect = form.querySelector('.subatencion-select');
+    const options = Array.from(subatencionSelect.querySelectorAll('option[data-tipo-atencion]'));
+
+    const actualizarSubatenciones = () => {
+      const tipoId = tipoSelect.value;
+      let subatencionesActivas = 0;
+      options.forEach(option => {
+        const coincide = option.dataset.tipoAtencion === tipoId;
+        option.hidden = !coincide;
+        option.disabled = !coincide;
+        if (coincide) subatencionesActivas += 1;
+      });
+      subatencionSelect.value = '';
+      subatencionSelect.disabled = !tipoId || subatencionesActivas === 0;
+      subatencionSelect.required = subatencionesActivas > 0;
+      subatencionSelect.options[0].textContent = tipoId
+        ? (subatencionesActivas ? 'Selecciona una subatención...' : 'Sin subatenciones configuradas')
+        : 'Selecciona un tipo de atención primero...';
+    };
+
+    tipoSelect.addEventListener('change', actualizarSubatenciones);
+    actualizarSubatenciones();
+  });
+</script>
+{% endblock %}
